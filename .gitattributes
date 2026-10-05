@@ -1,0 +1,17 @@
+# Normalise line endings so the history does not churn between machines.
+* text=auto eol=lf
+
+# Binary assets — never diffed, never line-ending converted.
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.webp binary
+*.hdr binary
+*.exr binary
+
+# Blender / 3D exchange formats are text and are safe to normalise.
+*.obj text eol=lf
+*.mtl text eol=lf
+
+# Lockfiles are generated; keep them diffable but out of the EOL fight.
+package-lock.json text eol=lf
