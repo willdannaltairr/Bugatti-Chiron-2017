@@ -52,8 +52,7 @@ export default function CarStage({
       />
 
       {state.status === "loading" && <LoadingPlate />}
-      {state.status === "missing" && notice === "pill" && <MissingPill />}
-      {state.status === "missing" && notice === "panel" && <MissingMesh reason={state.reason} />}
+      {state.status === "missing" && <MissingPill />}
     </div>
   );
 }
@@ -70,15 +69,17 @@ function LoadingPlate() {
 }
 
 /**
- * Compact form for the hero, where a full panel would fight the headline.
+ * Shown while the real mesh is absent: the canvas is running a clearly-labeled
+ * stylized stand-in, and this names that honestly instead of letting it read as
+ * the real car.
  */
 function MissingPill() {
   return (
     <div className="pointer-events-none absolute bottom-6 right-6 max-w-[15rem] rounded-[3px] border border-ink-line bg-ink/85 px-4 py-3 backdrop-blur-sm">
-      <p className="text-[0.6rem] uppercase tracking-[0.24em] text-champagne">Mesh not loaded</p>
+      <p className="text-[0.6rem] uppercase tracking-[0.24em] text-champagne">Stylized preview</p>
       <p className="mt-1.5 text-xs leading-relaxed text-mute">
         Add{" "}
-        <code className="text-bone">public/models/bugatti.obj</code> to render the car here.
+        <code className="text-bone">public/models/bugatti.obj</code> to render the real car.
       </p>
     </div>
   );
