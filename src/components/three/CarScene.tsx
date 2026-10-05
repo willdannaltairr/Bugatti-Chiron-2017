@@ -7,6 +7,7 @@ import type { MotionValue } from "motion/react";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useCarModel } from "./CarModelProvider";
+import ProceduralChiron from "./ProceduralChiron";
 import StudioEnvironment from "./StudioEnvironment";
 
 type CarSceneProps = {
@@ -23,15 +24,8 @@ type CarSceneProps = {
  * gets a shallow clone. Geometries and materials are still shared by reference,
  * which is why changing the paint colour updates both scenes at once.
  */
-function CarBody({
-  autoRotate = false,
-  interactive = false,
-  paint,
-  scrollProgress,
-}: CarSceneProps) {
+function CarMesh({ paint }: { paint?: string }) {
   const state = useCarModel();
-  const group = useRef<THREE.Group>(null);
-  const { camera } = useThree();
 
   const model = useMemo(
     () => (state.status === "ready" ? state.object.clone(true) : null),
@@ -47,6 +41,31 @@ function CarBody({
     }
   }, [state, paint]);
 
+  // While the real mesh is not loaded, a clearly-labeled stand-in carries the
+  // same paint so the colour switcher keeps working on the preview.
+  if (!model) return <ProceduralChiron paint={paint} />;
+  return <primitive object={model} />;
+}
+
+/**
+ * One place that owns the two things every frame can move — the car's spin and
+ * the camera dolly — so the hero's scroll-driven framing and the explorer's
+ * orbiting car behave identically regardless of which mesh is on screen.
+ */
+function SceneController({
+  autoRotate,
+  interactive,
+  scrollProgress,
+  paint,
+}: {
+  autoRotate: boolean;
+  interactive: boolean;
+  scrollProgress?: MotionValue<number>;
+  paint?: string;
+}) {
+  const group = useRef<THREE.Group>(null);
+  const { camera } = useThree();
+
   useFrame((_, delta) => {
     if (group.current && autoRotate) {
       group.current.rotation.y += delta * 0.16;
@@ -59,11 +78,9 @@ function CarBody({
     }
   });
 
-  if (!model) return null;
-
   return (
     <group ref={group} position={[0, 0, 0]}>
-      <primitive object={model} />
+      <CarMesh paint={paint} />
     </group>
   );
 }
@@ -92,7 +109,12 @@ export default function CarScene(props: CarSceneProps) {
         shadow-mapSize={[1024, 1024]}
       />
 
-      <CarBody {...props} />
+      <SceneController
+        autoRotate={props.autoRotate ?? true}
+        interactive={props.interactive ?? false}
+        paint={props.paint}
+        scrollProgress={props.scrollProgress}
+      />
 
       <ContactShadows
         position={[0, 0.002, 0]}
